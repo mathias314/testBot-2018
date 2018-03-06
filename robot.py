@@ -3,6 +3,20 @@
 #THIS IS CODE FOR THE BEST BOT
 #USES TALON SR INSTEAD OF SPARKS
 
+'''
+here is a motivational story about a llama who is a professional golfer.
+hans was a sad llama as a child, and he always tended to dream big. One day, his dreams became reality.
+it was a beautiful summer day, the sun was high in the sky, and there were no clouds.
+he walked out of his abode that morning, and understood what had to be done.
+he reentered his home, picked up his driver, downed a bottle of jack, and made his way triumphantly out of his home.
+it was a short walk to Small Pines putt-putt course, and only took him about 15 minutes to gallop to.
+he enjoyed the exercise. After all, he didn't often get out of the house.
+as he stepped through the front door to purchase his ticket, he was given an odd stare by the man at the counter.
+"you cant use a driver on a putt putt course, you hecking idiot," he said.
+Hans stared the man down with his steely llama gaze and retorted: "..."
+Hans didn't say anything because he's a fucking llama, and llama's can't talk.
+'''
+
 import math
 import wpilib
 import ctre
@@ -28,7 +42,8 @@ class MyRobot(wpilib.SampleRobot):
         self.RLM = ctre.wpi_talonsrx.WPI_TalonSRX(3)
         self.FLM = ctre.wpi_talonsrx.WPI_TalonSRX(4)
 
-        self.forkliftTalon = ctre.wpi_talonsrx.WPI_TalonSRX(5)
+        self.forkliftSpark1 = wpilib.Spark(6)
+        self.forkliftSpark2 = wpilib.Spark(7)
 
         self.intakeSparkRight = wpilib.Talon(5)
         self.intakeSparkLeft = wpilib.Talon(4)
@@ -56,6 +71,8 @@ class MyRobot(wpilib.SampleRobot):
 
         self.pneumatic.set(2)
         self.pneumaticHook.set(2)
+
+        wpilib.CameraServer.launch()
 
         print(str(self.RRM.configSelectedFeedbackSensor(ctre._impl.ctre_roborio.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 1000)))  # encoders
         print(str(self.FLM.configSelectedFeedbackSensor(ctre._impl.ctre_roborio.FeedbackDevice.CTRE_MagEncoder_Absolute, 0, 1000)))
@@ -163,6 +180,8 @@ class MyRobot(wpilib.SampleRobot):
             gameData = wpilib.DriverStation.getInstance().getGameSpecificMessage()
         highvalue = self.switchHigh.getValue()  # setting switch stuff up
         lowvalue = self.switchLow.getValue()
+
+        #lowvalue = 3500
         # pull in
         # grab cube
         # forklift up
@@ -173,7 +192,7 @@ class MyRobot(wpilib.SampleRobot):
                 self.turnLeftTheta(90)
                 self.moveForwards(5 * 12 / (self.tireRadius * 2 * math.pi))
                 self.turnRightTheta(90)
-                self.moveToShootHight(1)
+                self.moveToShootHeight(1)
                 self.moveForwards(4.3 * 12 / (self.tireRadius * 2 * math.pi))
                 self.pneumatic.set(1)
                 # TODO: score
@@ -183,7 +202,7 @@ class MyRobot(wpilib.SampleRobot):
                 self.turnRightTheta(90)
                 self.moveForwards(5 * 12 / (self.tireRadius * 2 * math.pi))
                 self.turnLeftTheta(90)
-                self.moveToShootHight(1)
+                self.moveToShootHeight(1)
                 self.moveForwards(4.3 * 12 / (self.tireRadius * 2 * math.pi))
                 self.pneumatic.set(1)
                 # TODO: score
@@ -196,7 +215,7 @@ class MyRobot(wpilib.SampleRobot):
                 # go switch
                 self.moveForwards(14 * 12 / (self.tireRadius * 2 * math.pi))
                 self.turnLeftTheta(90)
-                self.moveToShootHight(1)
+                self.moveToShootHeight(1)
                 self.moveForwards(0.7)
                 self.pneumatic.set(1)
                 # TODO: score
@@ -209,9 +228,12 @@ class MyRobot(wpilib.SampleRobot):
                 # go switch
                 self.moveForwards(14 * 12 / (self.tireRadius * 2 * math.pi))
                 self.turnRightTheta(90)
-                self.moveToShootHight(1)
+                self.moveToShootHeight(1)
                 self.moveForwards(0.7)
                 self.pneumatic.set(1)
+                #this is where it might all go to shit
+                #self.moveForwards(-.6)
+                #self.turnLeftTheta(90)
                 # TODO: score
 
     def turn(self, delta):  # This is a turn function that utilizes the gyro. It is not always extremely accurate
@@ -226,11 +248,13 @@ class MyRobot(wpilib.SampleRobot):
                 self.RRM.set(mode=ctre._impl.ctre_roborio.ControlMode.Velocity, value=-800)
                 self.FLM.set(mode=ctre._impl.ctre_roborio.ControlMode.Velocity, value=800)
 
-    def moveToShootHight(self, up):
+    def moveToShootHeight(self, up):
         if up:
-            self.forkliftTalon.set(.75)
+            self.forkliftSpark1.set(.75)
+            self.forkliftSpark2.set(.75)
         else:
-            self.forkliftTalon.set(-.6)
+            self.forkliftSpark1.set(-.6)
+            self.forkliftSpark2.set(-.6)
         while self.limitSwitch1.get():
             print(self.limitSwitch1.get())
         self.forkliftTalon.set(0)
@@ -271,8 +295,8 @@ class MyRobot(wpilib.SampleRobot):
             self.FLM.set(speedRight)
             self.RRM.set(speedLeft)
 
-            intakeIn = self.stick_2.getXButton()  # Pull a power cube in
-            intakeOut = self.stick_2.getYButton()  # Shoot a power cube out
+            intakeIn = self.stick_2.getYButton()  # Pull a power cube in
+            intakeOut = self.stick_2.getXButton()  # Shoot a power cube out
 
             if intakeIn:
                 print("intake in")
@@ -326,18 +350,21 @@ class MyRobot(wpilib.SampleRobot):
             forkliftDown = (self.stick_1.getTriggerAxis(0))  # left hand
 
             if forkliftUp > 0.06:
-                self.forkliftTalon.set(1*forkliftUp)
+                self.forkliftSpark1.set(1*forkliftUp)
+                self.forkliftSpark2.set(1*forkliftUp)
             elif forkliftDown > 0.06:
-                self.forkliftTalon.set(-.5*forkliftDown)
+                self.forkliftSpark1.set(-1*forkliftDown)
+                self.forkliftSpark2.set(-1*forkliftDown)
             else:
-                self.forkliftTalon.set(0)
+                self.forkliftSpark1.set(0)
+                self.forkliftSpark2.set(0)
 
             print(self.limitSwitch1.get())
 
             up = self.stick_1.getStartButton()
 
             if up:
-                self.moveToShootHight(1)
+                self.moveToShootHeight(1)
 
             highvalue = self.switchHigh.getValue()
             lowvalue = self.switchLow.getValue()
