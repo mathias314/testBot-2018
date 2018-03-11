@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-#THIS IS CODE FOR THE BEST BOT
 #USES TALON SR INSTEAD OF SPARKS
 
 '''
@@ -36,6 +35,9 @@ class MyRobot(wpilib.SampleRobot):
         '''Robot initialization function
         define and initialize the drivetrain motors'''
 
+        self.NickSpeed = 0.85 #1 is regular speed, 0 is not moving, choose a number
+        self.NickControls = True # If true the robot will obey the left and right side controls. If false the robot will obey the forward/reverse and rotate controls.
+
         # initialize Talons and Sparks
         self.RRM = ctre.wpi_talonsrx.WPI_TalonSRX(1)
         self.FRM = ctre.wpi_talonsrx.WPI_TalonSRX(2)
@@ -53,8 +55,6 @@ class MyRobot(wpilib.SampleRobot):
 
         self.stick_1 = wpilib.XboxController(0)  # initialize the first joystick on port 0
         self.stick_2 = wpilib.XboxController(1)
-
-        self.NickSpeed = False
 
         self.switchHigh = wpilib.AnalogInput(0)  # Blue wire on 3-way switch
         self.switchLow = wpilib.AnalogInput(1)  # Yellow and brown wires on 3-way switch
@@ -83,6 +83,7 @@ class MyRobot(wpilib.SampleRobot):
         self.RRM.setInverted(True)
         self.RLM.setInverted(True)
 
+        # yes
         # configure Talon movement parameters (for constant velocity motion)
         self.FLM.configNominalOutputForward(0, 5)
         self.FLM.configNominalOutputReverse(0, 5)
@@ -95,12 +96,12 @@ class MyRobot(wpilib.SampleRobot):
         self.RRM.configPeakOutputReverse(-1, 5)
 
         # TODO: configure these values for actual bot (run tests, preferably in a place with no obstacles)
-        self.FLM.config_kF(0, 0.4, 5)  # feed-forward throttle (basically initial speed-up)
+        self.FLM.config_kF(0, 0.48, 5)  # feed-forward throttle (basically initial speed-up)
         self.FLM.config_kP(0, 0.12, 5)  # proportional (how fast it corrects)
         self.FLM.config_kI(0, 0, 5)
         self.FLM.config_kD(0, 0, 5)
 
-        self.RRM.config_kF(0, 0.42, 5)  # feed-forward throttle (basically initial speed-up)
+        self.RRM.config_kF(0, 0.47, 5)  # feed-forward throttle (basically initial speed-up)
         self.RRM.config_kP(0, 0.12, 5)  # proportional (how fast it corrects)
         self.RRM.config_kI(0, 0, 5)
         self.RRM.config_kD(0, 0, 5)
@@ -181,11 +182,15 @@ class MyRobot(wpilib.SampleRobot):
         highvalue = self.switchHigh.getValue()  # setting switch stuff up
         lowvalue = self.switchLow.getValue()
 
+        startPosition = "Middle"
+
         #lowvalue = 3500
         # pull in
         # grab cube
         # forklift up
-        if highvalue < 500 and lowvalue < 500:  # Middle
+
+        #if highvalue < 500 and lowvalue < 500:  # Middle
+        if startPosition == "Middle":
             if gameData[0] == "L":
                 # go switch on left
                 self.moveForwards(4.5 * 12 / (self.tireRadius * 2 * math.pi))  # 4.5 is feet, *12 converts it to inches
@@ -193,7 +198,7 @@ class MyRobot(wpilib.SampleRobot):
                 self.moveForwards(5 * 12 / (self.tireRadius * 2 * math.pi))
                 self.turnRightTheta(90)
                 self.moveToShootHeight(1)
-                self.moveForwards(4.3 * 12 / (self.tireRadius * 2 * math.pi))
+                self.moveForwards(3.6 * 12 / (self.tireRadius * 2 * math.pi))
                 self.pneumatic.set(1)
                 # TODO: score
             else:  # score on right side
@@ -206,7 +211,8 @@ class MyRobot(wpilib.SampleRobot):
                 self.moveForwards(4.3 * 12 / (self.tireRadius * 2 * math.pi))
                 self.pneumatic.set(1)
                 # TODO: score
-        elif highvalue > 3000:  # Right
+        #elif highvalue > 3000:  # Right
+        elif startPosition == "Right":
             if gameData[0] == "L":
                 # go scale
                 self.moveForwards(20 * 12 / (self.tireRadius * 2 * math.pi))
@@ -219,7 +225,8 @@ class MyRobot(wpilib.SampleRobot):
                 self.moveForwards(0.7)
                 self.pneumatic.set(1)
                 # TODO: score
-        elif lowvalue > 3000:  # Left
+        #elif lowvalue > 3000:  # Left
+        elif startPosition == "Left":
             if gameData[0] == "R":
                 # go scale
                 self.moveForwards(20 * 12 / (self.tireRadius * 2 * math.pi))
@@ -257,19 +264,50 @@ class MyRobot(wpilib.SampleRobot):
             self.forkliftSpark2.set(-.6)
         while self.limitSwitch1.get():
             print(self.limitSwitch1.get())
-        self.forkliftTalon.set(0)
+        self.forkliftSpark1.set(.2)
+        self.forkliftSpark2.set(.2)
 
 
     def operatorControl(self):
         # Runs the motor from a joystick.
         '''Set the control mode of all four drivetrain motors'''
         self.RRM.setPulseWidthPosition(0, 0)
+
         while self.isOperatorControl() and self.isEnabled():
 
-            # getRawAxis here outputs -1 to +1.
-            one = 0.75 * self.stick_1.getRawAxis(1)  # Left stick forward/backward
-            five = 0.75 * self.stick_1.getRawAxis(5)   # Right stick left/right
-            # self.boostLever = self.stick_1.getRawAxis(2) this doesn't do anything, but it will maybe eventually
+            #print(self.limitSwitch1.get())
+
+            if self.NickControls:# getRawAxis here outputs -1 to +1. Questionable
+                one = 0.75 * self.stick_1.getRawAxis(1)  # Left stick forward/backward
+                five = 0.75 * self.stick_1.getRawAxis(5)   # Right stick left/right
+                # self.boostLever = self.stick_1.getRawAxis(2) this doesn't do anything, but it will maybe eventually
+
+                # Calculate the speed each motor should be
+                speedLeft = -1 * five
+                speedRight = -1 * one
+
+                if abs(speedLeft) < 0.15:
+                    speedLeft = 0
+
+                if abs(speedRight) < 0.15:
+                    speedRight = 0
+
+                self.FLM.set(speedRight * self.NickSpeed)
+                self.RRM.set(speedLeft * self.NickSpeed)
+            else: #Alternate Controls
+                one = -0.75*self.stick_1.getRawAxis(1) #if this returns positive then go forwards
+                four = 0.75*self.stick_1.getRawAxis(4) #if this returns positive then turn right. Jeremy prefers axis 4;, Jack prefers axis 0.
+
+                speedLeft = (one-four)
+                speedRight = (one+four)
+
+                if abs(speedLeft) < 0.2:
+                    speedLeft = 0
+                if abs(speedRight) < 0.2:
+                    speedRight = 0
+
+                self.FLM.set(speedRight * self.NickSpeed)
+                self.RRM.set(speedLeft * self.NickSpeed)
 
             # these control the pneumatic arm
             forward = self.stick_2.getAButton()  # close
@@ -282,30 +320,23 @@ class MyRobot(wpilib.SampleRobot):
             else:
                 pass
 
-            # Calculate the speed each motor should be
-            speedLeft = -1 * five
-            speedRight = -1 * one
 
-            if abs(speedLeft) < 0.15:
-                speedLeft = 0
-
-            if abs(speedRight) < 0.15:
-                speedRight = 0
-
-            self.FLM.set(speedRight)
-            self.RRM.set(speedLeft)
-
-            intakeIn = self.stick_2.getYButton()  # Pull a power cube in
-            intakeOut = self.stick_2.getXButton()  # Shoot a power cube out
+            intakeIn = self.stick_2.getXButton()  # Pull a power cube in
+            intakeOut = self.stick_2.getYButton()  # Shoot a power cube out slowly
+            intakeOut2 = self.stick_2.getBumper(1) # Shoot a power cube out fast
 
             if intakeIn:
-                print("intake in")
-                self.intakeSparkRight.set(1)
-                self.intakeSparkLeft.set(1)
-            elif intakeOut:
-                print("intake out")
+                #print("intake in")
                 self.intakeSparkRight.set(-1)
                 self.intakeSparkLeft.set(-1)
+            elif intakeOut:
+                #print("intake out slow")
+                self.intakeSparkRight.set(0.4)
+                self.intakeSparkLeft.set(0.4)
+            elif intakeOut2:
+                #print("intake out fast")
+                self.intakeSparkRight.set(0.8)
+                self.intakeSparkLeft.set(0.8)
             else:
                 self.intakeSparkRight.set(0)
                 self.intakeSparkLeft.set(0)
@@ -326,6 +357,11 @@ class MyRobot(wpilib.SampleRobot):
 
             climberUp = self.stick_2.getTriggerAxis(1)
 
+            # NEVER EVER UNDER ANY CIRCUMSTANCES RUN THE CLIMBER IN THE -1 DIRECTION.
+            # IF YOU DO, I WILL BE DEEPLY DISAPPOINTED IN YOU, BECAUSE THE ROBOT
+            # WILL BREAK AND YOUR PARENTS WILL BE NOTIFIED THAT YOU BROKE THE ROBOT.
+            #
+            # -Jon
 
             if climberUp > 0.06:
                 self.climbingSpark.set(climberUp * 1)
@@ -353,13 +389,13 @@ class MyRobot(wpilib.SampleRobot):
                 self.forkliftSpark1.set(1*forkliftUp)
                 self.forkliftSpark2.set(1*forkliftUp)
             elif forkliftDown > 0.06:
-                self.forkliftSpark1.set(-1*forkliftDown)
-                self.forkliftSpark2.set(-1*forkliftDown)
+                self.forkliftSpark1.set(-0.5*forkliftDown)
+                self.forkliftSpark2.set(-0.5 *forkliftDown)
             else:
-                self.forkliftSpark1.set(0)
-                self.forkliftSpark2.set(0)
+                self.forkliftSpark1.set(0.15)
+                self.forkliftSpark2.set(0.15)
 
-            print(self.limitSwitch1.get())
+            #print(self.limitSwitch1.get())
 
             up = self.stick_1.getStartButton()
 
