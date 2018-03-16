@@ -35,7 +35,7 @@ class MyRobot(wpilib.SampleRobot):
         '''Robot initialization function
         define and initialize the drivetrain motors'''
 
-        self.NickSpeed = 0.85 #1 is regular speed, 0 is not moving, choose a number
+        self.NickSpeed = 1 #1 is regular speed, 0 is not moving, choose a number
         self.NickControls = True # If true the robot will obey the left and right side controls. If false the robot will obey the forward/reverse and rotate controls.
 
         # initialize Talons and Sparks
@@ -155,7 +155,7 @@ class MyRobot(wpilib.SampleRobot):
         self.FLM.set(ctre._impl.ctre_roborio.ControlMode.Velocity, 0)
         wpilib.Timer.delay(1)
 
-    def turnRight(self):
+    def turnRight(self): #this function mom gay
         self.RRM.setPulseWidthPosition(0, 0)
         self.FLM.setPulseWidthPosition(0, 0)
         while (self.RRM.getSelectedSensorPosition(0)[1] < -4000 or self.FLM.getSelectedSensorPosition(0)[1] > -4000) and self.isEnabled():
@@ -165,7 +165,7 @@ class MyRobot(wpilib.SampleRobot):
         self.RRM.set(ctre._impl.ctre_roborio.ControlMode.Velocity, 0)
         self.FLM.set(ctre._impl.ctre_roborio.ControlMode.Velocity, 0)
 
-    def turnLeft(self):
+    def turnLeft(self): # litte known fact is that ur mom gay
         self.RRM.setPulseWidthPosition(0, 0)
         self.FLM.setPulseWidthPosition(0, 0)
         while (self.RRM.getSelectedSensorPosition(0)[1] > -3900 or self.FLM.getSelectedSensorPosition(0)[1] < 3900) and self.isEnabled():
@@ -174,6 +174,18 @@ class MyRobot(wpilib.SampleRobot):
 
         self.RRM.set(ctre._impl.ctre_roborio.ControlMode.Velocity, 0)
         self.FLM.set(ctre._impl.ctre_roborio.ControlMode.Velocity, 0)
+
+    def moveToShootHeight(self, up):
+        if up:
+            self.forkliftSpark1.set(.75)
+            self.forkliftSpark2.set(.75)
+        else:
+            self.forkliftSpark1.set(-.6)
+            self.forkliftSpark2.set(-.6)
+        while self.limitSwitch1.get():
+            print(self.limitSwitch1.get())
+        self.forkliftSpark1.set(.2)
+        self.forkliftSpark2.set(.2)
 
     def autonomous(self):
         gameData = wpilib.DriverStation.getInstance().getGameSpecificMessage()
@@ -255,18 +267,6 @@ class MyRobot(wpilib.SampleRobot):
                 self.RRM.set(mode=ctre._impl.ctre_roborio.ControlMode.Velocity, value=-800)
                 self.FLM.set(mode=ctre._impl.ctre_roborio.ControlMode.Velocity, value=800)
 
-    def moveToShootHeight(self, up):
-        if up:
-            self.forkliftSpark1.set(.75)
-            self.forkliftSpark2.set(.75)
-        else:
-            self.forkliftSpark1.set(-.6)
-            self.forkliftSpark2.set(-.6)
-        while self.limitSwitch1.get():
-            print(self.limitSwitch1.get())
-        self.forkliftSpark1.set(.2)
-        self.forkliftSpark2.set(.2)
-
 
     def operatorControl(self):
         # Runs the motor from a joystick.
@@ -294,7 +294,7 @@ class MyRobot(wpilib.SampleRobot):
 
                 self.FLM.set(speedRight * self.NickSpeed)
                 self.RRM.set(speedLeft * self.NickSpeed)
-            else: #Alternate Controls
+            else: #Alternate Controls, aka Jack control
                 one = -0.75*self.stick_1.getRawAxis(1) #if this returns positive then go forwards
                 four = 0.75*self.stick_1.getRawAxis(4) #if this returns positive then turn right. Jeremy prefers axis 4;, Jack prefers axis 0.
 
@@ -321,9 +321,9 @@ class MyRobot(wpilib.SampleRobot):
                 pass
 
 
-            intakeIn = self.stick_2.getXButton()  # Pull a power cube in
+            intakeIn = self.stick_2.getBumper(1)  # Pull a power cube in
             intakeOut = self.stick_2.getYButton()  # Shoot a power cube out slowly
-            intakeOut2 = self.stick_2.getBumper(1) # Shoot a power cube out fast
+            intakeOut2 = self.stick_2.getBumper(0) # Shoot a power cube out fast
 
             if intakeIn:
                 #print("intake in")
@@ -355,7 +355,7 @@ class MyRobot(wpilib.SampleRobot):
             else:
                 pass'''
 
-            climberUp = self.stick_2.getTriggerAxis(1)
+            climberUp = self.stick_2.getTriggerAxis(3)
 
             # NEVER EVER UNDER ANY CIRCUMSTANCES RUN THE CLIMBER IN THE -1 DIRECTION.
             # IF YOU DO, I WILL BE DEEPLY DISAPPOINTED IN YOU, BECAUSE THE ROBOT
