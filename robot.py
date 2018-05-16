@@ -13,7 +13,7 @@ he enjoyed the exercise. After all, he didn't often get out of the house.
 as he stepped through the front door to purchase his ticket, he was given an odd stare by the man at the counter.
 "you cant use a driver on a putt putt course, you hecking idiot," he said.
 Hans stared the man down with his steely llama gaze and retorted: "..."
-Hans didn't say anything because he's a fucking llama, and llama's can't talk.
+Hans didn't say anything because he's a heccing llama, and llama's can't talk.
 '''
 
 import math
